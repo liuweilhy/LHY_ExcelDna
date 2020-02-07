@@ -1,0 +1,3 @@
+<DnaLibrary Name="LHY_ExcelDna" RuntimeVersion="v4.0" Language="C#">
+    <ExternalLibrary Path="LHY_ExcelDna.dll" Pack="true" ExplicitExports="true" />
+</DnaLibrary>
