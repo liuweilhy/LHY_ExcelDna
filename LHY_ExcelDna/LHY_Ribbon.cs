@@ -417,7 +417,7 @@ namespace LHY_ExcelDna
         #endregion
 
         #region ExcelCommand
-
+        /*
         [ExcelCommand(MenuName = "功能示例", MenuText = "显示版本号",
             //ShortCut = "^1",
             Name = "ShowVer")]
@@ -442,11 +442,11 @@ namespace LHY_ExcelDna
             ExcelReference target = new ExcelReference(0, 0);
             target.SetValue(sum);
         }
-
+        */
         #endregion
 
         #region ExcelFunction
-
+        /*
         [ExcelFunction(Category = "LHY_ExcelDna插件",
             Description = "测试",
             IsHidden = false,
@@ -458,7 +458,7 @@ namespace LHY_ExcelDna
             int c = a + b;
             return c.ToString();
         }
-
+        */
         #endregion
 
     }
