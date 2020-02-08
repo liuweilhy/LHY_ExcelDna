@@ -1,12 +1,13 @@
 ﻿using ExcelDna.Integration;
 using ExcelDna.Integration.CustomUI;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
+using Hook;
 using Application = Microsoft.Office.Interop.Excel.Application;
-using System.IO;
 
 namespace LHY_ExcelDna
 {
@@ -29,6 +30,9 @@ namespace LHY_ExcelDna
         // Worksheet
         private Worksheet worksheet = null;
 
+        // 处理键盘钩子
+        private KeyboardHook keyboardHook = null;
+
         // 其它成员变量
         private string searchDir = string.Empty;
         private List<string> extensions = new List<string>();
@@ -37,6 +41,10 @@ namespace LHY_ExcelDna
         private bool isSearchAll = false;
         private bool isOpenFile = true;
 
+        public RibbonUI()
+        {
+            keyboardHook = new KeyboardHook();
+        }
 
         #endregion
 
@@ -419,7 +427,7 @@ namespace LHY_ExcelDna
         #region ExcelCommand
         /*
         [ExcelCommand(MenuName = "功能示例", MenuText = "显示版本号",
-            //ShortCut = "^1",
+            ShortCut = "^1",
             Name = "ShowVer")]
         public static void ShowVer()
         {
