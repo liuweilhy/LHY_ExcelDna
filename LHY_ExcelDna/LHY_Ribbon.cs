@@ -1,12 +1,13 @@
-﻿using ExcelDna.Integration;
-using ExcelDna.Integration.CustomUI;
-using System;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Microsoft.Office.Interop.Excel;
+using ExcelDna.Integration;
+using ExcelDna.Integration.CustomUI;
 using Hook;
+using Microsoft.Office.Interop.Excel;
 using Application = Microsoft.Office.Interop.Excel.Application;
 
 namespace LHY_ExcelDna
@@ -18,6 +19,7 @@ namespace LHY_ExcelDna
     public class RibbonUI : ExcelRibbon
     {
         #region Member
+
         // 记录IRibbonUI对象
         private static IRibbonUI customRibbon;
 
@@ -34,6 +36,9 @@ namespace LHY_ExcelDna
         private KeyboardHook keyboardHook = null;
 
         // 其它成员变量
+        private bool isAbs = false;
+
+        private bool isR1c1 = false;
         private string searchDir = string.Empty;
         private List<string> extensions = new List<string>();
         private bool isOnlyFile = true;
@@ -41,25 +46,65 @@ namespace LHY_ExcelDna
         private bool isSearchAll = false;
         private bool isOpenFile = true;
 
-        public RibbonUI()
-        {
-            keyboardHook = new KeyboardHook();
-        }
-
-        #endregion
+        #endregion Member
 
         #region RibbonUI
+
         //https://blog.csdn.net/ITTechnologyHome/article/details/53891087             //VisualStudio2017集成GitHub
         //https://msdn.microsoft.com/en-us/library/aa722523(v=office.12).aspx         //Ribbon函数回调定义
         //https://msdn.microsoft.com/zh-cn/library/office/ee691833(v=office.14).aspx  //Office 2010 Backstage 视图介绍
+
+        public RibbonUI()
+        {
+            keyboardHook = new KeyboardHook("Test");
+            keyboardHook.KeyDownEvent += ShortCut;
+        }
+
+        ~RibbonUI()
+        {
+            keyboardHook.KeyDownEvent -= ShortCut;
+        }
+
+        /// <summary>
+        /// 定义热键
+        /// </summary>
+        /// <param name="e"></param>
+        private void ShortCut(KeyboardHookEventArgs e)
+        {
+            if (xlapp == null || customRibbon == null)
+            {
+                return;
+            }
+
+            // Ctrl+Alt+F
+            if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("F"))
+            {
+                buttonSearch_onAction();
+            }
+            else if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("W"))
+            {
+                isAbs = !isAbs;
+                customRibbon.InvalidateControl("buttonAbs");
+                buttonAbs_onAction(null, isAbs);
+            }
+            else if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("E"))
+            {
+                isAbs = !isAbs;
+                customRibbon.InvalidateControl("buttonAbs");
+                buttonR1C1_onAction(null, isR1c1);
+            }
+        }
 
         /// <summary>
         /// ribbon callback, get IRibbonUI object.
         /// </summary>
         public void OnLoad(IRibbonUI ribbon)
         {
-            customRibbon = ribbon;
             xlapp = (Application)ExcelDnaUtil.Application;
+            customRibbon = ribbon;
+            ribbon.Invalidate();
+            extensions.Add("*");
+            Debug.WriteLine("IRibbonUI加载成功！");
         }
 
         /// <summary>
@@ -71,9 +116,13 @@ namespace LHY_ExcelDna
             try
             {
                 if (ExcelDnaUtil.ExcelVersion > 12)
+                {
                     ribbonxml = ResourceHelper.GetResourceText("CustomUI14.xml");
+                }
                 else
+                {
                     throw new Exception("Do not support this Office Version.");
+                }
             }
             catch (Exception ex)
             {
@@ -91,24 +140,49 @@ namespace LHY_ExcelDna
         }
 
         /// <summary>
+        /// toggleButton_getPressed
+        /// </summary>
+        public bool toggleButton_getPressed(IRibbonControl control)
+        {
+            switch (control.Id)
+            {
+                case "buttonAbs":
+                    return isAbs;
+
+                case "buttonR1C1":
+                    return isR1c1;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// buttonAbs_onAction
         /// </summary>
         public void buttonAbs_onAction(IRibbonControl control, bool pressed)
         {
+            isAbs = pressed;
+            object referenceType;
+            if (pressed)
+            {
+                referenceType = XlReferenceType.xlAbsolute;
+            }
+            else
+            {
+                referenceType = XlReferenceType.xlRelative;
+            }
+
             try
             {
                 worksheet = xlapp.ActiveSheet;
                 Range formulaRange = xlapp.Selection;
                 if (formulaRange == null || !formulaRange.HasFormula)
+                {
                     return;
+                }
+
                 formulaRange = xlapp.Intersect(formulaRange,
                     formulaRange.SpecialCells(XlCellType.xlCellTypeFormulas));
 
-                object referenceType;
-                if (pressed)
-                    referenceType = XlReferenceType.xlAbsolute;
-                else
-                    referenceType = XlReferenceType.xlRelative;
                 foreach (Range cell in formulaRange)
                 {
                     cell.Formula = xlapp.ConvertFormula(cell.Formula,
@@ -124,10 +198,15 @@ namespace LHY_ExcelDna
         /// </summary>
         public void buttonR1C1_onAction(IRibbonControl control, bool pressed)
         {
+            isR1c1 = pressed;
             if (pressed)
+            {
                 xlapp.ReferenceStyle = XlReferenceStyle.xlR1C1;
+            }
             else
+            {
                 xlapp.ReferenceStyle = XlReferenceStyle.xlA1;
+            }
         }
 
         /// <summary>
@@ -137,7 +216,10 @@ namespace LHY_ExcelDna
         {
             worksheet = xlapp.ActiveSheet;
             if (worksheet == null)
+            {
                 return;
+            }
+
             if (worksheet.ProtectContents == false)
             {
                 MessageBox.Show("当前工作表无保护密码！", "无密码",
@@ -174,9 +256,13 @@ namespace LHY_ExcelDna
                 for (int j = 0; j < 11; j++)
                 {
                     if ((1 << j & i) != 0)
+                    {
                         passCharArray[j] = 'B';
+                    }
                     else
+                    {
                         passCharArray[j] = 'A';
+                    }
                 }
                 for (int c = 32; c <= 126; c++)
                 {
@@ -222,10 +308,13 @@ namespace LHY_ExcelDna
             {
                 case "checkBoxOnlyFile":
                     return isOnlyFile;
+
                 case "checkBoxIncludeSubDir":
                     return isIncluedSubDir;
+
                 case "checkBoxSearchAll":
                     return isSearchAll;
+
                 case "checkBoxOpenFile":
                     return isOpenFile;
             }
@@ -242,15 +331,19 @@ namespace LHY_ExcelDna
                 case "checkBoxOnlyFile":
                     isOnlyFile = pressed;
                     break;
+
                 case "checkBoxIncludeSubDir":
                     isIncluedSubDir = pressed;
                     break;
+
                 case "checkBoxSearchAll":
                     isSearchAll = pressed;
                     break;
+
                 case "checkBoxOpenFile":
                     isOpenFile = pressed;
                     break;
+
                 default:
                     break;
             }
@@ -275,10 +368,10 @@ namespace LHY_ExcelDna
             foreach (string str in text.Split(';'))
             {
                 if (!string.IsNullOrWhiteSpace(str) && !extensions.Contains(str))
+                {
                     extensions.Add(str);
+                }
             }
-            if (extensions.Count == 0)
-                extensions.Add("*");
         }
 
         /// <summary>
@@ -295,7 +388,10 @@ namespace LHY_ExcelDna
             }
 
             if (!searchDir.EndsWith(@"\"))
+            {
                 searchDir += @"\";
+            }
+
             DirectoryInfo dir = new DirectoryInfo(searchDir);
             if (!dir.Exists)
             {
@@ -324,13 +420,26 @@ namespace LHY_ExcelDna
 
                 if (isOnlyFile)
                 {
+                    List<string> patterns = new List<string>();
                     foreach (string extension in extensions)
                     {
-                        string pattern = "*" + keyword + "*." + extension;
+                        patterns.Add("*" + keyword + "*." + extension);
+                    }
+                    if (patterns.Count == 0)
+                    {
+                        patterns.Add("*" + keyword + "*");
+                    }
+
+                    foreach (string pattern in patterns)
+                    {
                         if (isIncluedSubDir)
+                        {
                             files = dir.GetFiles(pattern, SearchOption.AllDirectories);
+                        }
                         else
+                        {
                             files = dir.GetFiles(pattern, SearchOption.TopDirectoryOnly);
+                        }
 
                         found = files.Length;
                         if (found == 0)
@@ -353,7 +462,9 @@ namespace LHY_ExcelDna
                             }
                             opened++;
                             if (!isSearchAll || opened >= 10)
+                            {
                                 return;
+                            }
                         }
                     }
                 }
@@ -392,7 +503,9 @@ namespace LHY_ExcelDna
                         }
                         opened++;
                         if (!isSearchAll || opened >= 10)
+                        {
                             return;
+                        }
                     }
 
                     foreach (FileInfo file in files)
@@ -407,7 +520,9 @@ namespace LHY_ExcelDna
                         }
                         opened++;
                         if (!isSearchAll || opened >= 10)
+                        {
                             return;
+                        }
                     }
                 }
             }
@@ -419,12 +534,16 @@ namespace LHY_ExcelDna
         /// </summary>
         public void buttonAboutShortcut_onAction(IRibbonControl control)
         {
-            MessageBox.Show("开发中...", "快捷键说明", MessageBoxButtons.OK);
+            MessageBox.Show("Ctrl+Alt+W: 绝对引用和相对引用转换\n" +
+                "Ctrl+Alt+E: A1模式和R1C1模式转换\n" +
+                "Ctrl+Alt+F: 查找文件",
+                "快捷键说明", MessageBoxButtons.OK);
         }
 
-        #endregion
+        #endregion RibbonUI
 
         #region ExcelCommand
+
         /*
         [ExcelCommand(MenuName = "功能示例", MenuText = "显示版本号",
             ShortCut = "^1",
@@ -451,9 +570,11 @@ namespace LHY_ExcelDna
             target.SetValue(sum);
         }
         */
-        #endregion
+
+        #endregion ExcelCommand
 
         #region ExcelFunction
+
         /*
         [ExcelFunction(Category = "LHY_ExcelDna插件",
             Description = "测试",
@@ -467,7 +588,7 @@ namespace LHY_ExcelDna
             return c.ToString();
         }
         */
-        #endregion
 
+        #endregion ExcelFunction
     }
 }
