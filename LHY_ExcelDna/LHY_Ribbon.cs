@@ -16,7 +16,7 @@ namespace LHY_ExcelDna
     /// Load custom Excel Fluent/Ribbon
     /// </summary>
     [ComVisible(true)]
-    public class RibbonUI : ExcelRibbon
+    public class RibbonUI : ExcelRibbon, IExcelAddIn
     {
         #region Member
 
@@ -62,6 +62,33 @@ namespace LHY_ExcelDna
         ~RibbonUI()
         {
             keyboardHook.KeyDownEvent -= ShortCut;
+        }
+
+        public void AutoOpen()
+        {
+            xlapp.WorkbookActivate += OnWorkbookActivate;
+            xlapp.WorkbookBeforeClose += OnWorkbookBeforeClose;
+        }
+
+        private void OnWorkbookActivate(Workbook wb)
+        {
+            Invalidate();
+        }
+
+        private void OnWorkbookBeforeClose(Workbook wb, ref Boolean cancel)
+        {
+            if (!cancel)
+                Invalidate();
+        }
+
+        public void AutoClose()
+        {
+            try
+            {
+                xlapp.WorkbookActivate -= OnWorkbookActivate;
+                xlapp.WorkbookBeforeClose -= OnWorkbookBeforeClose;
+            }
+            catch { return; }
         }
 
         /// <summary>
