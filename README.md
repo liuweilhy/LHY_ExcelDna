@@ -1,37 +1,40 @@
-# LHY_ExcelDna
+﻿# LHY_ExcelDna
+### 用户界面
+![gui](./images/gui.png "Optional title")  
 
-#### 介绍
-C#版本的ExcelAddIn插件，使用ExcelDna支持库。功能与本人的LHY_ExcelAddIn_VBA类似，但文件检索的功能有改进（支持Unicode文件名），快捷键未支持。
+### 功能
+此插件在本人原先的VBA插件基础上重构，在.Net 4.0平台下使用ExcelDna库C#开发。  
+主要是自定义的Ribbon功能区。目前实现如下功能：  
 
-#### 软件架构
-软件架构说明
+  1. 公式绝对引用和相对引用的转换  
+  2. A1和R1C1形式的转换  
+  3. 破解工作表写保护密码  
+  4. 批量文件搜索打开文件  
 
+后续可能会追加更多功能...
 
-#### 安装教程
+### 加载方法
+本插件有两种加载方法：
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. 直接打开xll文件加载  
+   打开xll文件，在弹出的提示中选择“启用此加载项”，出现功能区LHY即可。  
+   直接打开的方式，重启Excel后LHY功能区消失，再次使用需要重新加载。  
+2. 使用Excel加载项加载  
+   打开“开发工具”功能区，选择“Excel加载项”，浏览添加此xll文件，并勾选，出现功能区LHY即可。  
+   加载项的方式，重启Excel后功能区不消失。如需取消，则应在Excel加载项中删除。  
 
-#### 使用说明
+### 功能使用方法
+1. 公式绝对引用和相对引用的转换  
+   选中需要公式转换的单元格区域，按下Ctrl+Alt+W，就可以在绝对引用和相对引用两种形式下切换。  
+2. A1和R1C1形式的转换  
+   按下Ctrl+Alt+E，就可以在A1和R1C1两种形式下切换。  
+3. 破解写入密码
+   破解Excel写入密码，使之可写。此过程可能会占用很长时间  
+4. 批量文件搜索打开文件  
+   按下Ctrl+Alt+F，搜索名字含有活动单元格内容的文件或文件夹。  
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 码云特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5.  码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+### 修改和添加功能
++ 如果这个项目帮助了你，请给我点个星。  
++ 如果要修改功能区，请修改customUI14.xml。  
++ 如果要修改功能，请在Visual Studio中修改。  
++ 如果你有新功能的需求，欢迎给我留言，视情况添加。  

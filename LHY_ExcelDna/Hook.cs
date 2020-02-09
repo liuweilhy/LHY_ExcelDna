@@ -173,16 +173,20 @@ namespace Hook
                 // Debug.WriteLine("code: " + code.ToString());
                 if (code == HC_ACTION && !ispaused)
                 {
+                    KeyboardHookEventArgs args = new KeyboardHookEventArgs(wParam, lParam);
                     // 键盘按下
                     if (lParam > 0)
                     {
-                        KeyDownEvent(new KeyboardHookEventArgs(wParam, lParam));
+                        KeyDownEvent(args);
                     }
                     // 键盘松开
                     else if (lParam < 0)
                     {
-                        KeyUpEvent(new KeyboardHookEventArgs(wParam, lParam));
+                        KeyUpEvent(args);
                     }
+                    // 屏蔽热键
+                    if (args.isShield)
+                        return 1;
                 }
             }
             catch (Exception ex)
@@ -283,10 +287,10 @@ namespace Hook
         public bool isRWinPressed { get; private set; }
         public bool isShiftPressed { get { return isLShiftPressed || isRShiftPressed; } }
         public bool isWinPressed { get { return isLWinPressed || isRWinPressed; } }
+        public bool isShield { get; set; }
 
         public override string ToString()
         {
-            //return string.Format("Key={0}; Win={1}; Alt={2}; Ctrl={3}; Shift={4}", new object[] { Key, isWinPressed, isAltPressed, isCtrlPressed, isShiftPressed });
             if ((wparam >= 0x30 && wparam <= 0x39) || (wparam >= 0x41 && wparam <= 0x5A))
             {
                 return new string((char)wparam, 1);

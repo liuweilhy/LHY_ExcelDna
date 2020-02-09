@@ -1,0 +1,78 @@
+﻿<!doctype html public '-//W3C//DTD HTML 4.0 Transitional //EN'>
+<html>
+<head>
+<title>README</title>
+<meta charset='UTF-8' />
+<meta name='generator' content='EverEdit' />
+<link href='D:\Program Files\EverEdit\mode\markdown\default.css' rel='stylesheet'></link>
+<link href='D:\Program Files\EverEdit\mode\markdown\prettify.css' rel='stylesheet'></link>
+<script type='text/javascript' src='D:\Program Files\EverEdit\mode\markdown\prettify.js'></script>
+<script type='text/javascript' src='D:\Program Files\EverEdit\mode\markdown\jquery-1.10.2.min.js'></script>
+<script type='text/javascript' src='D:\Program Files\EverEdit\mode\markdown\toc.js'></script>
+</head>
+<body>
+<div id='generated-toc'></div>
+<h1>LHY_ExcelDna</h1>
+
+<h3>用户界面</h3>
+
+<p><img src="./images/gui.png" alt="gui" title="Optional title" />  </p>
+
+<h3>功能</h3>
+
+<p>此插件在本人原先的VBA插件基础上重构，在.Net 4.0平台下使用ExcelDna库C#开发。 <br>
+主要是自定义的Ribbon功能区。目前实现如下功能：  </p>
+
+<ol>
+<li>公式绝对引用和相对引用的转换  </li>
+<li>A1和R1C1形式的转换  </li>
+<li>破解工作表写保护密码  </li>
+<li>批量文件搜索打开文件  </li>
+</ol>
+
+<p>后续可能会追加更多功能&#8230;</p>
+
+<h3>加载方法</h3>
+
+<p>本插件有两种加载方法：</p>
+
+<ol>
+<li>直接打开xll文件加载 <br>
+打开xll文件，在弹出的提示中选择“启用此加载项”，出现功能区LHY即可。 <br>
+直接打开的方式，重启Excel后LHY功能区消失，再次使用需要重新加载。  </li>
+<li>使用Excel加载项加载 <br>
+打开“开发工具”功能区，选择“Excel加载项”，浏览添加此xll文件，并勾选，出现功能区LHY即可。 <br>
+加载项的方式，重启Excel后功能区不消失。如需取消，则应在Excel加载项中删除。  </li>
+</ol>
+
+<h3>功能使用方法</h3>
+
+<ol>
+<li>公式绝对引用和相对引用的转换 <br>
+选中需要公式转换的单元格区域，按下Ctrl+Alt+W，就可以在绝对引用和相对引用两种形式下切换。  </li>
+<li>A1和R1C1形式的转换 <br>
+按下Ctrl+Alt+E，就可以在A1和R1C1两种形式下切换。  </li>
+<li>破解写入密码
+破解Excel写入密码，使之可写。此过程可能会占用很长时间  </li>
+<li>批量文件搜索打开文件 <br>
+按下Ctrl+Alt+F，搜索名字含有活动单元格内容的文件或文件夹。  </li>
+</ol>
+
+<h3>修改和添加功能</h3>
+
+<ul>
+<li>如果这个项目帮助了你，请给我点个星。  </li>
+<li>如果要修改功能区，请修改customUI14.xml。  </li>
+<li>如果要修改功能，请在Visual Studio中修改。  </li>
+<li>如果你有新功能的需求，欢迎给我留言，视情况添加。  </li>
+</ul>
+<script type='text/javascript'>
+$(document).ready(function(){
+  if($('code').length>0){
+    $('code').parent().addClass('prettyprint linenums');
+    prettyPrint();
+};
+});
+</script>
+</body>
+</html>

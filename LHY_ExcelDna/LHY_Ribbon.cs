@@ -79,19 +79,26 @@ namespace LHY_ExcelDna
             // Ctrl+Alt+F
             if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("F"))
             {
+                e.isShield = true;
                 buttonSearch_onAction();
             }
             else if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("W"))
             {
+                e.isShield = true;
                 isAbs = !isAbs;
                 customRibbon.InvalidateControl("buttonAbs");
                 buttonAbs_onAction(null, isAbs);
             }
             else if (e.isCtrlPressed && e.isAltPressed && e.ToString().Equals("E"))
             {
-                isAbs = !isAbs;
-                customRibbon.InvalidateControl("buttonAbs");
+                e.isShield = true;
+                isR1c1 = !isR1c1;
+                customRibbon.InvalidateControl("buttonR1C1");
                 buttonR1C1_onAction(null, isR1c1);
+            }
+            else
+            {
+                e.isShield = false;
             }
         }
 
