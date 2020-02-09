@@ -24,7 +24,7 @@ namespace LHY_ExcelDna
         private static IRibbonUI customRibbon;
 
         // App
-        private Application xlapp = null;
+        private Application xlapp = (Application)ExcelDnaUtil.Application;
 
         // Workbook
         private Workbook workbook = null;
@@ -50,7 +50,6 @@ namespace LHY_ExcelDna
 
         #region RibbonUI
 
-        //https://blog.csdn.net/ITTechnologyHome/article/details/53891087             //VisualStudio2017集成GitHub
         //https://msdn.microsoft.com/en-us/library/aa722523(v=office.12).aspx         //Ribbon函数回调定义
         //https://msdn.microsoft.com/zh-cn/library/office/ee691833(v=office.14).aspx  //Office 2010 Backstage 视图介绍
 
@@ -107,11 +106,14 @@ namespace LHY_ExcelDna
         /// </summary>
         public void OnLoad(IRibbonUI ribbon)
         {
-            xlapp = (Application)ExcelDnaUtil.Application;
             customRibbon = ribbon;
-            ribbon.Invalidate();
-            extensions.Add("*");
+            customRibbon.Invalidate();
             Debug.WriteLine("IRibbonUI加载成功！");
+        }
+
+        public void Invalidate()
+        {
+            customRibbon.Invalidate();
         }
 
         /// <summary>
@@ -144,6 +146,21 @@ namespace LHY_ExcelDna
         public override object LoadImage(string imageId)
         {
             return ResourceHelper.GetResourceBitmap(imageId);
+        }
+
+        /// <summary>
+        /// control_getEnabled
+        /// </summary>
+        public bool control_getEnabled(IRibbonControl control)
+        {
+            // 如果没有打开工作表，则全部控件不可用
+            if (xlapp.ActiveSheet == null)
+                return false;
+            // 对于comboBoxExName控件，Enabled取决于isOnlyFile
+            if (control.Id == "comboBoxExName")
+                return isOnlyFile;
+            // 其余情况下控件可用
+            return true;
         }
 
         /// <summary>
@@ -206,6 +223,8 @@ namespace LHY_ExcelDna
         public void buttonR1C1_onAction(IRibbonControl control, bool pressed)
         {
             isR1c1 = pressed;
+
+            // 使用.Net API
             if (pressed)
             {
                 xlapp.ReferenceStyle = XlReferenceStyle.xlR1C1;
@@ -355,14 +374,6 @@ namespace LHY_ExcelDna
                     break;
             }
             customRibbon.Invalidate();
-        }
-
-        /// <summary>
-        /// comboBoxExName_getEnabled
-        /// </summary>
-        public bool comboBoxExName_getEnabled(IRibbonControl control)
-        {
-            return isOnlyFile;
         }
 
         /// <summary>
@@ -541,25 +552,45 @@ namespace LHY_ExcelDna
         /// </summary>
         public void buttonAboutShortcut_onAction(IRibbonControl control)
         {
-            MessageBox.Show("Ctrl+Alt+W: 绝对引用和相对引用转换\n" +
-                "Ctrl+Alt+E: A1模式和R1C1模式转换\n" +
-                "Ctrl+Alt+F: 查找文件",
+            MessageBox.Show("Ctrl+Alt+W:  绝对引用和相对引用转换\n" +
+                "Ctrl+Alt+E:   A1模式和R1C1模式转换\n" +
+                "Ctrl+Alt+F:   查找文件\n" +
+                "Ctrl+Q:         合并居中单元格",
                 "快捷键说明", MessageBoxButtons.OK);
         }
 
         #endregion RibbonUI
 
         #region ExcelCommand
-
-        /*
-        [ExcelCommand(MenuName = "功能示例", MenuText = "显示版本号",
-            ShortCut = "^1",
-            Name = "ShowVer")]
-        public static void ShowVer()
+        
+        /// <summary>
+        /// 合并单元格
+        /// </summary>
+        /// 注意宏命令的快捷键只支持Ctrl+字母或数字，ShortCut里的字母要小写
+        [ExcelCommand(Name = "Merge_UnMerge", ShortCut = "^q")]
+        public static void Merge_UnMerge()
         {
-            XlCall.Excel(XlCall.xlcAlert, ExcelDna.Integration.ExcelDnaUtil.ExcelVersion);
+            try
+            {
+                Application app = (Application)ExcelDnaUtil.Application;
+                Range selection = app.Selection;
+                if (true.Equals(selection.MergeCells))
+                {
+                    selection.UnMerge();
+                    selection.HorizontalAlignment = XlHAlign.xlHAlignGeneral;
+                    selection.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                }
+                else
+                {
+                    selection.Merge();
+                    selection.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+                    selection.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                }
+            }
+            catch { return; }
         }
 
+        /*
         [ExcelCommand(MenuName = "功能示例", MenuText = "求和",
             //ShortCut = "^2",
             Name = "SumSelectRange")]
